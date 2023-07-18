@@ -1,0 +1,132 @@
+#Tcc - parte 2
+#Alexsander/Victor/Joao
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+import shutil
+
+# definindo as constantes
+
+h           = 6.62606876e-34
+c           = 2.99792458e08
+k_B         = 1.3806503e-23
+sigma       = 2*np.pi**5*k_B**4/(15*c**2*h**3)
+AU          = 1.4959787066e11
+S_Sun       = 1.365e3
+M_Sun       = 1.9891e30
+L_Sun       = 4*np.pi*AU**2*S_Sun
+
+
+#tabela de dados dos nucleos - tabela 1
+
+star=pd.read_csv("NucleosT1.txt",delim_whitespace = True) #tabela 1 dados do nucleo
+
+#print(star)
+
+#questao 2.B
+
+plt.scatter(star['M'],star['T']/star['T'].max(),s=9,label='Temperatura do nucleo') # Temperatura do nucleo X Massa
+plt.scatter(star['M'],star['Teff']/star['Teff'].max(),s=9,label='Temperatura efetiva') #grafico Temp. efetiva x Massa
+plt.scatter(star['M'],star['Eps']/star['Eps'].max(),s=9,label='Energia') #grafico Energia x Massa
+plt.xlabel('Massa ($M_{\odot}$)')
+plt.title('Nucleos [X=0.7 Z=0.008]')
+plt.ylabel('Valores Normalizados')
+plt.legend()
+
+pasta_destino = 'Questao 2.B (Tn - Tf - En) [X=0.7 Z=0.008]'
+os.makedirs(pasta_destino, exist_ok=True)
+plt.savefig(os.path.join(pasta_destino, 'Questao 2.B (Tn - Tf - En) [X=0.7 Z=0.008].jpg'), dpi=1000, bbox_inches='tight')
+plt.close()
+
+star['R']= np.sqrt(star['L']*L_Sun/(4*np.pi*sigma*star['Teff']**4)) #definindo os raios
+
+plt.scatter(star['M'],star['R']/star['R'].max(),s=9,label='Raio') #grafico Raio x Massa
+plt.scatter(star['M'],star['Rho']/star['Rho'].max(),s=9,label='Densidade') #grafico Densidade x Massa
+plt.xlabel('Massa ($M_{\odot}$)')
+plt.title('Nucleos [X=0.7 Z=0.008]')
+plt.ylabel('Valores Normalizados')
+plt.legend(bbox_to_anchor = (1.0, 0.6))
+
+pasta_destino = 'Questao 2.B (R - Dens) [X=0.7 Z=0.008]'
+os.makedirs(pasta_destino, exist_ok=True)
+plt.savefig(os.path.join(pasta_destino, 'Questao 2.B (R - Dens) [X=0.7 Z=0.008].jpg'), dpi=1000, bbox_inches='tight')
+plt.close()
+
+#questao 2.D
+
+for P in range(0,11):
+
+  print("estrela", star["M"][P])
+  print("porcentagem\tT\trazao massa\t linha tabela")
+  star2=pd.read_csv(f"Tabela1.{P+1}.dat",delim_whitespace = True)
+
+  #definir razao luminosidade/luminosidade superficial
+
+  star2['RL']=star2['L_r']/(star['L'][P]*L_Sun)
+
+  #questao 2.e
+
+  star2["M"]=(1.988e30*(1-star2['Qm']))/(star['M'][P]*M_Sun)
+
+  #separa as razoes de 0.99 dentre os dados (questao 2.d)
+
+  for k in range(0,len(star2['RL'])-2):
+    if (0.992> star2['RL'][k]> 0.988):
+
+      print(star2['RL'][k],"\t",star2['T'][k],"\t",star2["M"][k],"\t",k) #Luminosidades 99%  da superficial Temp e massa das camadas
+
+  #separa as razoes de 0.50 dentre os dados (questao 2.d)
+
+  for k in range(0,len(star2['RL'])-2):
+    if (0.51> star2['RL'][k]> 0.48):
+      print(star2['RL'][k],"\t",star2['T'][k],"\t",star2["M"][k],"\t",k) #Luminosidades 50%  da superficial Temp e massa das camadas
+
+  print("\n")
+
+#grafico das razoes
+
+#plt.scatter(star2['T'],star2['RL'],s=9,label='Porcentagem')
+#plt.xlabel('Temperatura')
+#plt.title('Razao lum')
+#plt.ylabel('Porcentagem')
+#plt.legend()
+#plt.show()
+
+#questao 2.h - Determinando alpha
+
+plt.scatter(star['M'], star['L'])
+plt.title('Relacao massa x luminosidade')
+plt.xlabel('Massa')
+plt.ylabel('Luminosidade')
+
+pasta_destino = 'Questao 2.h massa-luminosidade [X=0.7 Z=0.008]'
+os.makedirs(pasta_destino, exist_ok=True)
+plt.savefig(os.path.join(pasta_destino, 'massa-luminosidade [X=0.7 Z=0.008].jpg'), dpi=1000, bbox_inches='tight')
+plt.close()
+
+
+#Fazendo regressão linear para conjunto de dados linearizados
+
+coeff,cov = np.polyfit((np.log(star['M'])),(np.log(star['L'])),1,cov=True)
+
+#Funcao para obtermos o ajuste linear:
+
+def equacao_reta(x,a,b):
+  return b + a*x
+
+#plot da regressao
+
+plt.scatter ((np.log(star['M'])),(np.log(star['L'])))
+plt.plot((np.log(star['M'])),equacao_reta(((np.log(star['M']))),coeff[0],coeff[1]),'k-')
+plt.title('Regressão linear')
+plt.xlabel('ln M')
+plt.ylabel('ln L')
+
+pasta_destino = 'Questao 2.h - linearizado [X=0.7 Z=0.008]'
+os.makedirs(pasta_destino, exist_ok=True)
+plt.savefig(os.path.join(pasta_destino, 'linearizado [X=0.7 Z=0.008].jpg'), dpi=1000, bbox_inches='tight')
+plt.close()
+
+print('a:',coeff[0], '+-',np.sqrt(cov[0][0]),', b:',coeff[1],'+-',np.sqrt(cov[1][1]))
