@@ -39,7 +39,7 @@ for i in range(0,11):
 
   for j in range(0,len(Dados)-1):
 
-    massa=((1.988e30*(1-Dados['Qm'][j]))+(1.9e30*(1-Dados['Qm'][j+1])))/2
+    massa=((1.988e30*(Dados['Qm'][j]))+(1.9e30*(Dados['Qm'][j+1])))/2
     calculo_massa.append(massa)
 
   calculo_massa.append(0)
