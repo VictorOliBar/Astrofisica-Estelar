@@ -1,0 +1,65 @@
+from operator import length_hint
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+import shutil
+from google.colab import files
+
+
+for i in range(0,11):
+
+
+  Dados=pd.read_csv(f'Tabela2.{i+1}.dat',delim_whitespace = True)
+  Dados=Dados.drop(['rho','kap','fl','dlnPdlnT'],axis=1)
+
+  #Gráficos:
+
+  # *Gráfico de Pxr
+
+  y1=(Dados['P'] - min(Dados['P']))/(max(Dados['P']) - min(Dados['P']) )
+  r=(Dados['r'] - min(Dados['r']))/(max(Dados['r']) - min(Dados['r']) )
+  plt.scatter(r, y1, color='green', s=0.1,label='Qm')
+  plt.xlabel('$r_{N}$')
+
+
+  # *Gráfico Lxr
+
+  y2=(Dados['L_r'] - min(Dados['L_r']))/(max(Dados['L_r']) - min(Dados['L_r']) )
+  plt.scatter(r, y2, color='Orange', s=0.1,label='L_r')
+
+  # *Gráfico Txr
+
+  y3 =  (Dados['T'] - min(Dados['T']))/(max(Dados['T']) - min(Dados['T']) )
+  plt.scatter(r, y3, color='Blue', s=0.1,label='T')
+
+  # *Gráfico Mxr
+
+  calculo_massa=[]
+
+  for j in range(0,len(Dados)-1):
+
+    massa=((1.988e30*(1-Dados['Qm'][j]))+(1.9e30*(1-Dados['Qm'][j+1])))/2
+    calculo_massa.append(massa)
+
+  calculo_massa.append(0)
+  calculo_massa = np.array(calculo_massa)  # Convertendo a lista em um array NumPy
+
+  y4=(calculo_massa - min(calculo_massa))/(max(calculo_massa) - min(calculo_massa) )
+  plt.scatter(r, y4, color='Red', s=0.1,label='M')
+  plt.title('Pressão, Massa, Luminosidade e Temperatura')
+  plt.legend(['$P_{N}$', '$L_{N}$', '$T_{N}$', '$M_{N}$'],loc='center right')
+
+
+  # Criando pasta para as imagens e salvando
+
+  pasta_destino = 'Questão 2 - letra a [X=0.7, Z=0.01]'
+  os.makedirs(pasta_destino, exist_ok=True)
+  plt.savefig(os.path.join(pasta_destino, f'Grafico{i+1}.jpg'), dpi=1000, bbox_inches='tight')
+  plt.close()
+
+# Compactar a pasta em um arquivo ZIP
+shutil.make_archive('/content/Questão 2 - letra a [X=0.7, Z=0.01]', 'zip', '.', 'Questão 2 - letra a [X=0.7, Z=0.01]')
+
+# Baixar o arquivo ZIP do Colab
+files.download('/content/Questão 2 - letra a [X=0.7, Z=0.01]')
